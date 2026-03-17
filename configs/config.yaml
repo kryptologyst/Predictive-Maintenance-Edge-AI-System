@@ -1,0 +1,228 @@
+# Device configurations for edge deployment
+device_configs:
+  raspberry_pi:
+    name: "Raspberry Pi 4"
+    cpu: "ARM Cortex-A72"
+    memory_mb: 4096
+    storage_gb: 32
+    os: "Raspberry Pi OS"
+    python_version: "3.10+"
+    tensorflow_lite: true
+    openvino: true
+    max_batch_size: 1
+    target_latency_ms: 100
+    
+  jetson_nano:
+    name: "NVIDIA Jetson Nano"
+    cpu: "ARM Cortex-A57"
+    gpu: "NVIDIA Maxwell"
+    memory_mb: 4096
+    storage_gb: 16
+    os: "Ubuntu 20.04"
+    python_version: "3.8+"
+    tensorflow_lite: true
+    tensorrt: true
+    openvino: true
+    max_batch_size: 1
+    target_latency_ms: 50
+    
+  android:
+    name: "Android Device"
+    cpu: "ARM/ARM64"
+    memory_mb: 2048
+    os: "Android 8.0+"
+    tensorflow_lite: true
+    coreml: false
+    max_batch_size: 1
+    target_latency_ms: 200
+    
+  ios:
+    name: "iOS Device"
+    cpu: "ARM64"
+    memory_mb: 2048
+    os: "iOS 13.0+"
+    tensorflow_lite: false
+    coreml: true
+    max_batch_size: 1
+    target_latency_ms: 200
+
+# Model configurations
+model_configs:
+  base:
+    architecture: "LSTM"
+    time_steps: 50
+    features: 3
+    lstm_units: 32
+    dense_units: 16
+    dropout_rate: 0.2
+    activation: "relu"
+    output_activation: "sigmoid"
+    
+  lightweight:
+    architecture: "LSTM"
+    time_steps: 30
+    features: 3
+    lstm_units: 16
+    dense_units: 8
+    dropout_rate: 0.1
+    activation: "relu"
+    output_activation: "sigmoid"
+    
+  quantized:
+    architecture: "LSTM"
+    time_steps: 50
+    features: 3
+    lstm_units: 32
+    dense_units: 16
+    dropout_rate: 0.2
+    quantization: "int8"
+    calibration_samples: 100
+
+# Training configurations
+training_configs:
+  default:
+    epochs: 50
+    batch_size: 32
+    learning_rate: 0.001
+    optimizer: "adam"
+    loss: "binary_crossentropy"
+    metrics: ["accuracy", "precision", "recall"]
+    validation_split: 0.2
+    early_stopping_patience: 10
+    reduce_lr_patience: 5
+    
+  edge_optimized:
+    epochs: 30
+    batch_size: 16
+    learning_rate: 0.001
+    optimizer: "adam"
+    loss: "binary_crossentropy"
+    metrics: ["accuracy"]
+    validation_split: 0.2
+    early_stopping_patience: 5
+    reduce_lr_patience: 3
+
+# Data configurations
+data_configs:
+  default:
+    n_samples: 1000
+    normal_ratio: 0.7
+    time_steps: 50
+    features: 3
+    fault_types: ["gradual", "sudden", "intermittent"]
+    noise_level: 0.01
+    add_trend: true
+    add_seasonality: true
+    
+  sensor_characteristics:
+    vibration:
+      normal_mean: 0.3
+      normal_std: 0.05
+      faulty_mean: 0.5
+      faulty_std: 0.1
+      unit: "g"
+      
+    temperature:
+      normal_mean: 60.0
+      normal_std: 2.0
+      faulty_mean: 70.0
+      faulty_std: 3.0
+      unit: "°C"
+      
+    pressure:
+      normal_mean: 30.0
+      normal_std: 1.0
+      faulty_mean: 27.0
+      faulty_std: 2.0
+      unit: "bar"
+
+# Edge constraints
+edge_constraints:
+  default:
+    max_latency_ms: 100
+    max_memory_mb: 50
+    max_model_size_mb: 10
+    min_throughput_fps: 1.0
+    max_batch_size: 1
+    max_sequence_length: 50
+    max_features: 3
+    
+  strict:
+    max_latency_ms: 50
+    max_memory_mb: 25
+    max_model_size_mb: 5
+    min_throughput_fps: 2.0
+    max_batch_size: 1
+    max_sequence_length: 30
+    max_features: 3
+
+# Export configurations
+export_configs:
+  tflite:
+    quantization: "int8"
+    optimize_for_size: true
+    representative_samples: 100
+    
+  onnx:
+    opset_version: 11
+    optimize: true
+    
+  coreml:
+    minimum_deployment_target: "iOS13"
+    compute_units: "all"
+    
+  openvino:
+    precision: "FP32"
+    optimize: true
+
+# Evaluation configurations
+evaluation_configs:
+  default:
+    test_size: 0.2
+    val_size: 0.1
+    benchmark_runs: 100
+    warmup_runs: 10
+    noise_levels: [0.01, 0.05, 0.1]
+    
+  robustness:
+    test_size: 0.2
+    val_size: 0.1
+    benchmark_runs: 50
+    warmup_runs: 5
+    noise_levels: [0.01, 0.02, 0.05, 0.1, 0.2]
+    perturbation_types: ["gaussian", "uniform", "dropout"]
+
+# Communication configurations
+communication_configs:
+  mqtt:
+    broker_host: "localhost"
+    broker_port: 1883
+    topic_prefix: "sensors/"
+    qos_level: 1
+    keepalive: 60
+    
+  websocket:
+    host: "localhost"
+    port: 8765
+    path: "/ws"
+    
+  kafka:
+    bootstrap_servers: ["localhost:9092"]
+    topic: "sensor_data"
+    group_id: "predictive_maintenance"
+
+# Logging configurations
+logging_configs:
+  default:
+    level: "INFO"
+    format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    file: "logs/predictive_maintenance.log"
+    max_size_mb: 10
+    backup_count: 5
+    
+  debug:
+    level: "DEBUG"
+    format: "%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s"
+    file: "logs/debug.log"
+    max_size_mb: 50
+    backup_count: 10
